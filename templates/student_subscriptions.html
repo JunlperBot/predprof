@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои абонементы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .subscription-card { border-left: 4px solid #0d6efd; }
+        .active-subscription { border-left: 4px solid #198754; }
+        .expired-subscription { border-left: 4px solid #6c757d; opacity: 0.7; }
+        .days-remaining { font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand">Мои абонементы</span>
+            <div class="d-flex">
+                <a href="/students/meals" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Меню</a>
+                <a href="/students/balance" class="btn btn-outline-light me-2"><i class="bi bi-wallet"></i> Баланс</a>
+                <a href="/students/profile" class="btn btn-outline-light me-2"><i class="bi bi-person"></i> Профиль</a>
+                <a href="/logout" class="btn btn-outline-light"><i class="bi bi-box-arrow-right"></i> Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-check"></i> Мои абонементы</h2>
+            <a href="/students/balance" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Пополнить баланс
+            </a>
+        </div>
+
+        {% if active_subscriptions %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Активные абонементы ({{ active_subscriptions|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for sub in active_subscriptions %}
+                    <div class="col">
+                        <div class="card h-100 active-subscription">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title">{{ sub.meal.name }}</h5>
+                                        <p class="text-muted small mb-0">{{ sub.meal.description }}</p>
+                                    </div>
+                                    <span class="badge bg-success">Активен</span>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Начало:</small>
+                                        <strong>{{ sub.start_date.strftime('%d.%m.%Y') }}</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Окончание:</small>
+                                        <strong>{{ sub.end_date.strftime('%d.%m.%Y') }}</strong>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Стоимость:</small>
+                                        <strong>{{ sub.price|int }} руб</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Осталось дней:</small>
+                                        <strong class="text-success">{{ (sub.end_date - today).days }}</strong>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        Вы можете заказывать это блюдо {{ sub.meal.meals_per_day }} раз в день
+                                    </small>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="/students/subscription-usage/{{ sub.id }}" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-clock-history"></i> История использования
+                                    </a>
+                                    <a href="/students/meals" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-cart-plus"></i> Заказать сейчас
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if expired_subscriptions %}
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Завершенные абонементы</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Блюдо</th>
+                                <th>Период</th>
+                                <th>Стоимость</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in expired_subscriptions %}
+                            <tr class="expired-subscription">
+                                <td>{{ sub.meal.name }}</td>
+                                <td>
+                                    {{ sub.start_date.strftime('%d.%m.%Y') }} -
+                                    {{ sub.end_date.strftime('%d.%m.%Y') }}
+                                </td>
+                                <td>{{ sub.price|int }} руб</td>
+                                <td><span class="badge bg-secondary">Завершен</span></td>
+                                <td>
+                                    <a href="/students/subscription-usage/{{ sub.id }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i> История
+                                    </a>
+                                    {% if sub.meal.has_subscription %}
+                                    <a href="/students/subscriptions/buy/{{ sub.meal.id }}" class="btn btn-sm btn-warning ms-1">
+                                        <i class="bi bi-arrow-clockwise"></i> Продлить
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Доступные абонементы</h5>
+            </div>
+            <div class="card-body">
+                {% if available_meals %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for meal in available_meals %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ meal.name }}</h5>
+                                <p class="card-text text-muted">{{ meal.description }}</p>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Обычная цена:</span>
+                                        <strong>{{ meal.price }} руб/порция</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Абонемент:</span>
+                                        <strong class="text-success">{{ meal.subscription_price|int }} руб/мес</strong>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <small>
+                                        <i class="bi bi-lightning"></i>
+                                        <strong>Экономия:</strong>
+                                        {{ (meal.price * 30 - meal.subscription_price)|int }} руб в месяц
+                                        <br>
+                                        <i class="bi bi-check-circle"></i>
+                                        {{ meal.meals_per_day }} прием(а) пищи в день
+                                    </small>
+                                </div>
+
+                                <a href="/students/subscriptions/buy/{{ meal.id }}" class="btn btn-warning w-100">
+                                    <i class="bi bi-cart-check"></i> Приобрести абонемент
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Нет доступных абонементов</h6>
+                    <p>На данный момент нет блюд с возможностью покупки абонемента.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="/students/meals" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Вернуться к меню
+            </a>
+            <a href="/students/my-orders" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-cart-check"></i> Мои заказы
+            </a>
+        </div>
+    </div>
+</body>
+</html>

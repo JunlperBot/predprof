@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка #{{ request_obj.id }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .priority-badge {
+            font-size: 0.9rem;
+        }
+        .status-badge {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <span class="navbar-brand">Заявка #{{ request_obj.id }}</span>
+            <div class="d-flex">
+                <a href="/cooks/purchase-requests" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад к списку</a>
+                <a href="/logout" class="btn btn-outline-light">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Заявка на закупку</h4>
+                            <div>
+                                {% if request_obj.status == 'pending' %}
+                                    <span class="badge bg-warning status-badge">На рассмотрении</span>
+                                {% elif request_obj.status == 'approved' %}
+                                    <span class="badge bg-success status-badge">Одобрено</span>
+                                {% elif request_obj.status == 'rejected' %}
+                                    <span class="badge bg-danger status-badge">Отклонено</span>
+                                {% elif request_obj.status == 'completed' %}
+                                    <span class="badge bg-info status-badge">Завершено</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-box"></i> Информация о продукте</h5>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Продукт:</th>
+                                        <td>{{ request_obj.product_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Количество:</th>
+                                        <td>{{ request_obj.quantity }} {{ request_obj.unit }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Приоритет:</th>
+                                        <td>
+                                            {% if request_obj.priority == 'critical' %}
+                                                <span class="badge bg-danger priority-badge">Критический</span>
+                                            {% elif request_obj.priority == 'high' %}
+                                                <span class="badge bg-warning priority-badge">Высокий</span>
+                                            {% elif request_obj.priority == 'normal' %}
+                                                <span class="badge bg-primary priority-badge">Обычный</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary priority-badge">Низкий</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-calendar"></i> Даты</h5>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Дата создания:</th>
+                                        <td>{{ request_obj.request_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    </tr>
+                                    {% if request_obj.needed_by %}
+                                    <tr>
+                                        <th>Нужен к:</th>
+                                        <td>{{ request_obj.needed_by.strftime('%d.%m.%Y') }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if request_obj.decision_date %}
+                                    <tr>
+                                        <th>Дата решения:</th>
+                                        <td>{{ request_obj.decision_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5><i class="bi bi-chat-text"></i> Обоснование заявки</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    {{ request_obj.reason|replace('\n', '<br>')|safe }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if request_obj.status != 'pending' %}
+                        <div class="mb-4">
+                            <h5><i class="bi bi-shield-check"></i> Решение администратора</h5>
+                            <div class="card {% if request_obj.status == 'approved' %}border-success{% elif request_obj.status == 'rejected' %}border-danger{% else %}border-info{% endif %}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Статус:</strong>
+                                                {% if request_obj.status == 'approved' %}
+                                                    <span class="text-success">Одобрено</span>
+                                                {% elif request_obj.status == 'rejected' %}
+                                                    <span class="text-danger">Отклонено</span>
+                                                {% elif request_obj.status == 'completed' %}
+                                                    <span class="text-info">Завершено</span>
+                                                {% endif %}
+                                            </p>
+                                            {% if request_obj.admin %}
+                                            <p><strong>Администратор:</strong> {{ request_obj.admin.full_name }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if request_obj.admin_notes %}
+                                            <p><strong>Комментарий:</strong></p>
+                                            <div class="alert {% if request_obj.status == 'approved' %}alert-success{% elif request_obj.status == 'rejected' %}alert-danger{% else %}alert-info{% endif %}">
+                                                {{ request_obj.admin_notes|replace('\n', '<br>')|safe }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/cooks/purchase-requests" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Вернуться к списку
+                            </a>
+                            {% if request_obj.status == 'pending' %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-clock"></i> Заявка находится на рассмотрении администратора
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

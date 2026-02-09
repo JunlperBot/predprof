@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пищевые предпочтения</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>.allergy-card,.preference-card{cursor:pointer;transition:all 0.2s;}.allergy-card:hover,.preference-card:hover{transform:scale(1.02);}.allergy-card.selected{border-color:#dc3545;background-color:#fff5f5;}.preference-card.selected{border-color:#198754;background-color:#f0fff4;}</style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand">Пищевые предпочтения</span>
+            <div class="d-flex">
+                <a href="/students/meals" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад в меню</a>
+                <a href="/students/profile" class="btn btn-outline-light me-2"><i class="bi bi-person"></i> Профиль</a>
+                <a href="/logout" class="btn btn-outline-light"><i class="bi bi-box-arrow-right"></i> Выйти</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-light"><h4 class="mb-0"><i class="bi bi-heart-pulse"></i> Настройки питания</h4></div>
+                    <div class="card-body">
+                        <form method="POST" action="/students/dietary-preferences">
+                            <div class="mb-4">
+                                <h5 class="mb-3"><i class="bi bi-exclamation-triangle text-danger"></i> Пищевые аллергии</h5>
+                                <p class="text-muted mb-3">Выберите продукты, на которые у вас аллергия.</p>
+                                <div class="row g-2 mb-3" id="allergies-container">
+                                    {% for allergy in common_allergies %}
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="card allergy-card p-3 text-center" data-allergy="{{ allergy }}" onclick="toggleAllergy(this)">{{ allergy }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="custom-allergies" class="form-label">Другие аллергии (через запятую)</label>
+                                    <textarea class="form-control" id="custom-allergies" name="allergies" rows="2" placeholder="Например: клубника, шоколад, грибы">{{ user.allergies if user.allergies }}</textarea>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h5 class="mb-3"><i class="bi bi-heart text-success"></i> Пищевые предпочтения</h5>
+                                <p class="text-muted mb-3">Выберите типы блюд, которые вы предпочитаете.</p>
+                                <div class="row g-2 mb-3" id="preferences-container">
+                                    {% for preference in common_preferences %}
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="card preference-card p-3 text-center" data-preference="{{ preference }}" onclick="togglePreference(this)">{{ preference }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="dietary_preferences" class="form-label">Другие предпочтения</label>
+                                    <textarea class="form-control" id="dietary_preferences" name="dietary_preferences" rows="3" placeholder="Например: не люблю острое, предпочитаю рыбу вместо мяса">{{ user.dietary_preferences if user.dietary_preferences }}</textarea>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <a href="/students/meals" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Отмена</a>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Сохранить настройки</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleAllergy(element){element.classList.toggle('selected');const allergy=element.dataset.allergy;const textarea=document.getElementById('custom-allergies');let allergies=textarea.value?textarea.value.split(', '):[];if(element.classList.contains('selected')){if(!allergies.includes(allergy)){allergies.push(allergy);}}else{allergies=allergies.filter(a=>a!==allergy);}textarea.value=allergies.join(', ');}
+        function togglePreference(element){element.classList.toggle('selected');const preference=element.dataset.preference;const textarea=document.getElementById('dietary_preferences');let current=textarea.value;if(element.classList.contains('selected')){if(!current.includes(preference)){current+=(current?', ':'')+preference;}}else{current=current.replace(new RegExp(`(, )?${preference}`),'').replace(/^, |, $/g,'');}textarea.value=current.trim();}
+        document.addEventListener('DOMContentLoaded',function(){const allergies="{{ user.allergies }}".split(', ');const preferences="{{ user.dietary_preferences }}".split(', ');document.querySelectorAll('.allergy-card').forEach(card=>{const allergy=card.dataset.allergy;if(allergies.includes(allergy)){card.classList.add('selected');}});document.querySelectorAll('.preference-card').forEach(card=>{const preference=card.dataset.preference;if(preferences.includes(preference)){card.classList.add('selected');}});});
+    </script>
+</body>
+</html>

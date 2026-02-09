@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поварская панель</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <span class="navbar-brand">Поварская панель</span>
+            <div class="d-flex">
+                <span class="navbar-text me-3">Привет, {{ session.get('full_name', 'Повар') }}</span>
+                <a href="/logout" class="btn btn-outline-light">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4"><i class="bi bi-egg-fried"></i> Управление кухней</h2>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Всего блюд</h6>
+                                <h2 class="mb-0">{{ total_meals }}</h2>
+                            </div>
+                            <i class="bi bi-egg-fried" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Доступно сейчас</h6>
+                                <h2 class="mb-0">{{ available_meals }}</h2>
+                            </div>
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Заказов сегодня</h6>
+                                <h2 class="mb-0">{{ today_orders }}</h2>
+                            </div>
+                            <i class="bi bi-cart" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Заявки на закупку</h6>
+                                <h2 class="mb-0">{{ purchase_stats.total }}</h2>
+                                <small>{{ purchase_stats.pending }} на рассмотрении</small>
+                            </div>
+                            <i class="bi bi-cart-plus" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="/cooks/meals" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-list-ul"></i> Управление меню
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/meals/add" class="btn btn-outline-success w-100">
+                            <i class="bi bi-plus-circle"></i> Добавить блюдо
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/purchase-requests" class="btn btn-outline-info w-100">
+                            <i class="bi bi-cart-plus"></i> Заявки на закупку
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/stock" class="btn btn-outline-info w-100">
+                            <i class="bi bi-boxes"></i> Управление остатками
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if purchase_stats.urgent > 0 %}
+        <div class="alert alert-danger">
+            <h6><i class="bi bi-exclamation-triangle"></i> Внимание!</h6>
+            <p>У вас есть {{ purchase_stats.urgent }} срочных заявок на закупку, требующих внимания.</p>
+            <a href="/cooks/purchase-requests" class="btn btn-outline-danger">
+                <i class="bi bi-arrow-right"></i> Перейти к заявкам
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-link"></i> Быстрый доступ</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <a href="/cooks/purchase-requests/new" class="btn btn-sm btn-outline-success w-100">
+                            <i class="bi bi-plus-circle"></i> Новая заявка на закупку
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/meals" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-egg-fried"></i> Редактировать меню
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/purchase-requests" class="btn btn-sm btn-outline-info w-100">
+                            <i class="bi bi-clock-history"></i> История заявок
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/cooks/stock" class="btn btn-sm btn-outline-info w-100">
+                            <i class="bi bi-boxes"></i> Остатки блюд
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

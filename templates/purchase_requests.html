@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявки на закупку</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .priority-critical {border-left: 4px solid #dc3545;}
+        .priority-high {border-left: 4px solid #fd7e14;}
+        .priority-normal {border-left: 4px solid #0d6efd;}
+        .priority-low {border-left: 4px solid #6c757d;}
+        .status-badge {font-size: 0.8rem;}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <span class="navbar-brand">Заявки на закупку</span>
+            <div class="d-flex">
+                <a href="/cooks" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад</a>
+                <a href="/cooks/purchase-requests/new" class="btn btn-outline-light me-2"><i class="bi bi-plus-circle"></i> Новая заявка</a>
+                <a href="/logout" class="btn btn-outline-light">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="mb-4"><i class="bi bi-cart-plus"></i> Мои заявки на закупку</h2>
+
+        <!-- Статистика -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><h6 class="card-title">Всего</h6><h2 class="mb-0">{{ stats.total }}</h2></div>
+                            <i class="bi bi-list-ul" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><h6 class="card-title">На рассмотрении</h6><h2 class="mb-0">{{ stats.pending }}</h2></div>
+                            <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><h6 class="card-title">Одобрено</h6><h2 class="mb-0">{{ stats.approved }}</h2></div>
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><h6 class="card-title">Отклонено</h6><h2 class="mb-0">{{ stats.rejected }}</h2></div>
+                            <i class="bi bi-x-circle" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Продукт</th>
+                        <th>Количество</th>
+                        <th>Приоритет</th>
+                        <th>Дата запроса</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr class="priority-{{ req.priority }}">
+                        <td>
+                            <strong>{{ req.product_name }}</strong>
+                            {% if req.reason %}<br><small class="text-muted">{{ req.reason[:50] }}{% if req.reason|length > 50 %}...{% endif %}</small>{% endif %}
+                        </td>
+                        <td>{{ req.quantity }} {{ req.unit }}</td>
+                        <td>
+                            {% if req.priority == 'critical' %}
+                                <span class="badge bg-danger">Критический</span>
+                            {% elif req.priority == 'high' %}
+                                <span class="badge bg-warning">Высокий</span>
+                            {% elif req.priority == 'normal' %}
+                                <span class="badge bg-primary">Обычный</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Низкий</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ req.request_date.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                                <span class="badge bg-warning status-badge">На рассмотрении</span>
+                            {% elif req.status == 'approved' %}
+                                <span class="badge bg-success status-badge">Одобрено</span>
+                            {% elif req.status == 'rejected' %}
+                                <span class="badge bg-danger status-badge">Отклонено</span>
+                            {% elif req.status == 'completed' %}
+                                <span class="badge bg-info status-badge">Завершено</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/cooks/purchase-requests/{{ req.id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Просмотр
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <h5><i class="bi bi-info-circle"></i> Заявок нет</h5>
+            <p>У вас еще нет заявок на закупку продуктов. Создайте первую заявку!</p>
+            <a href="/cooks/purchase-requests/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Создать первую заявку
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="/cooks/purchase-requests/new" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Новая заявка на закупку
+            </a>
+            <a href="/cooks" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-arrow-left"></i> Назад в панель повара
+            </a>
+        </div>
+    </div>
+</body>
+</html>

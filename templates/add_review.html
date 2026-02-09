@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оставить отзыв о {{ meal.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .rating-star{font-size:2.5rem;cursor:pointer;color:#dee2e6;transition:color 0.2s;}
+        .rating-star:hover,.rating-star.selected{color:#ffc107;}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand">Оставить отзыв</span>
+            <div class="d-flex">
+                <a href="/students/meals" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад в меню</a>
+                <a href="/logout" class="btn btn-outline-light"><i class="bi bi-box-arrow-right"></i> Выйти</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0"><i class="bi bi-chat-left-text"></i> {% if existing_review %}Редактировать отзыв{% else %}Оставить отзыв{% endif %}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="bi bi-info-circle"></i> Отзыв о блюде:</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div><h5 class="mb-1">{{ meal.name }}</h5><p class="text-muted mb-0">{{ meal.description }}</p></div>
+                                <span class="h5 text-success">{{ meal.price }} ₽</span>
+                            </div>
+                        </div>
+                        <form method="POST" action="/students/add-review/{{ meal.id }}">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Ваша оценка:</label>
+                                <div class="d-flex justify-content-center mb-2" id="rating-stars">
+                                    {% for i in range(1, 6) %}
+                                    <i class="bi bi-star-fill rating-star me-2" data-rating="{{ i }}" onclick="setRating({{ i }})"></i>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="rating" id="rating" value="{{ existing_review.rating if existing_review else 5 }}" required>
+                                <div class="text-center text-muted" id="rating-text">{% if existing_review %}Вы выбрали {{ existing_review.rating }} звезд{% else %}Выберите количество звезд{% endif %}</div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="comment" class="form-label fw-bold">Комментарий (необязательно)</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="Поделитесь вашим мнением о блюде...">{{ existing_review.comment if existing_review }}</textarea>
+                                <div class="form-text">Расскажите, что вам понравилось или не понравилось в этом блюде.</div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="anonymous" id="anonymous" {% if existing_review and existing_review.anonymous %}checked{% endif %}>
+                                    <label class="form-check-label" for="anonymous"><i class="bi bi-incognito"></i> Оставить отзыв анонимно</label>
+                                </div>
+                                <div class="form-text text-muted">Ваше имя не будет отображаться в отзыве.</div>
+                            </div>
+                            {% if not existing_review %}
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Важно:</h6>
+                                <ul class="mb-0">
+                                    <li>Вы можете оставить отзыв только на блюда, которые заказывали</li>
+                                    <li>Отзыв можно оставить только один раз для каждого блюда</li>
+                                    <li>Вы всегда можете изменить или удалить свой отзыв</li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between">
+                                <a href="/students/meal-reviews/{{ meal.id }}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Отмена</a>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> {% if existing_review %}Обновить отзыв{% else %}Опубликовать отзыв{% endif %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentRating = {{ existing_review.rating if existing_review else 5 }};
+        const ratingTexts = {1:"Ужасно",2:"Плохо",3:"Нормально",4:"Хорошо",5:"Отлично"};
+        function setRating(rating){currentRating=rating;document.getElementById('rating').value=rating;document.querySelectorAll('#rating-stars .rating-star').forEach((star,index)=>{if(index<rating){star.style.color='#ffc107';}else{star.style.color='#dee2e6';}});document.getElementById('rating-text').textContent=`${ratingTexts[rating]} (${rating} ${rating===1?'звезда':rating<5?'звезды':'звезд'})`;}
+        document.addEventListener('DOMContentLoaded',function(){setRating(currentRating);});
+    </script>
+</body>
+</html>

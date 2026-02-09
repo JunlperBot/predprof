@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пополнение остатков</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand">Пополнение остатков</span>
+            <div class="d-flex">
+                <a href="/cooks/stock" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад</a>
+                <a href="/logout" class="btn btn-outline-light">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-box-arrow-in-down"></i> {{ meal.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="bi bi-info-circle"></i> Текущая информация:</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Текущий остаток:</strong></p>
+                                    <h3 class="text-{% if meal.stock_quantity == 0 %}danger{% elif meal.stock_quantity <= meal.min_stock %}warning{% else %}success{% endif %}">
+                                        {{ meal.stock_quantity }} порций
+                                    </h3>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Минимальный запас:</strong></p>
+                                    <h5>{{ meal.min_stock }} порций</h5>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Максимальный запас:</strong></p>
+                                    <h5>{{ meal.max_stock }} порций</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="/cooks/stock/update/{{ meal.id }}">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Действие:</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="action" id="add" value="add" checked>
+                                    <label class="form-check-label" for="add">
+                                        <strong>Добавить порции</strong>
+                                        <small class="text-muted d-block">Увеличить текущий остаток</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="action" id="set" value="set">
+                                    <label class="form-check-label" for="set">
+                                        <strong>Установить точное количество</strong>
+                                        <small class="text-muted d-block">Задать конкретное число порций</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="quantity" class="form-label">Количество порций</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity"
+                                       min="1" max="{{ meal.max_stock * 2 }}" value="10" required>
+                                <div class="form-text">
+                                    Максимально можно добавить до {{ meal.max_stock * 2 }} порций за раз
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="notes" class="form-label">Примечание (необязательно)</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3"
+                                          placeholder="Например: Закуплена новая партия ингредиентов"></textarea>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Важно:</h6>
+                                <ul class="mb-0">
+                                    <li>После добавления порций блюдо станет доступно для заказа</li>
+                                    <li>Рекомендуется поддерживать остаток выше {{ meal.min_stock }} порций</li>
+                                    <li>При достижении 0 порций блюдо автоматически становится недоступным</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="/cooks/stock" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Отмена
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionRadios = document.querySelectorAll('input[name="action"]');
+            const quantityInput = document.getElementById('quantity');
+
+            actionRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'add') {
+                        quantityInput.min = 1;
+                        quantityInput.value = 10;
+                    } else {
+                        quantityInput.min = 0;
+                        quantityInput.value = {{ meal.stock_quantity }};
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История использования</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container-fluid">
+            <span class="navbar-brand">История использования</span>
+            <div class="d-flex">
+                <a href="/students/subscriptions" class="btn btn-outline-light me-2"><i class="bi bi-arrow-left"></i> Назад</a>
+                <a href="/logout" class="btn btn-outline-light">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Абонемент: {{ subscription.meal.name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Период:</strong> {{ subscription.start_date.strftime('%d.%m.%Y') }} - {{ subscription.end_date.strftime('%d.%m.%Y') }}</p>
+                        <p><strong>Статус:</strong>
+                            <span class="badge {% if subscription.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ 'Активен' if subscription.status == 'active' else 'Завершен' }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Стоимость:</strong> {{ subscription.price|int }} руб</p>
+                        <p><strong>Лимит в день:</strong> {{ subscription.meal.meals_per_day }} прием(а) пищи</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> История использования</h5>
+            </div>
+            <div class="card-body">
+                {% if usage_by_date %}
+                    {% for date_str, usages in usage_by_date.items() %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">{{ date_str }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Время</th>
+                                            <th>Тип приема пищи</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for usage in usages %}
+                                        <tr>
+                                            <td>{{ usage.used_at.strftime('%H:%M') }}</td>
+                                            <td>
+                                                {% if usage.meal_type == 'breakfast' %}
+                                                    <span class="badge bg-warning text-dark">Завтрак</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Обед</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><span class="badge bg-success">Использовано</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">Всего использовано: {{ usages|length }} раз</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> История пуста</h6>
+                        <p>Вы еще не использовали этот абонемент.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="/students/subscriptions" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Вернуться к абонементам
+            </a>
+        </div>
+    </div>
+</body>
+</html>
